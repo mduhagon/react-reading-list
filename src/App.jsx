@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react'
 import { books as booksData } from './data/booksData.js'
 import BookCard from './components/BookCard.jsx'
 import ApiBookCard from './components/ApiBookCard.jsx'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import Home from './pages/Home.jsx'
+import Love from './pages/Love.jsx'
+import Horror from './pages/Horror.jsx'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 function App() {
   const [books, setBooks ] = useState(booksData)
-  const [ apiBooks, setApiBook ] = useState([])
+  const [ loveBooks, setLoveBooks ] = useState([])
+  const [ horrorBooks, setHorrorBooks ] = useState([])
 // add function to change state of book (haveRead: true or false)
   const toggleReadStatus  = (id) => {
     let updatedBooks = books.map(book => {
@@ -20,15 +25,21 @@ function App() {
     console.log('Use Effect, will be triggered when the component loads');
     // get data from the api
     const getBooksData = async () => {
+      // fetch love
       let response = await fetch('http://openlibrary.org/subjects/love.json')
       let data = await response.json()
       // data contains the array works which is the books data
       // Alternative 1: 
+      console.log('Love books:');
       console.log(data.works);
-      setApiBook(data.works)
-      // Alternavtie 2: use the same BookCard component:
-      // rename the properties of the books from the API (loop, extract properties you need, add to state of books)
+      setLoveBooks(data.works)
 
+      // fetch horror
+      let responseHorror = await fetch('http://openlibrary.org/subjects/horror.json')
+      let dataHorror = await responseHorror.json()
+      console.log('Horror books:');
+      console.log(dataHorror.works);
+      setHorrorBooks(dataHorror.works)
     }
     getBooksData()
 
@@ -36,15 +47,19 @@ function App() {
   }, [])
 
   return (
-    <div>
-      <h1>My reading collection!</h1>
-      <div className="collection-list">
-        {books.map(book => (<BookCard book={book} toggleStatus={toggleReadStatus} key={book.id} /> ))}
-      </div>
-    <div className="collection-list" >
-      { apiBooks.map(work => <ApiBookCard book={work} key={work.ia}/>)} 
-    </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<Home />} >
+          <Route path='love' element={<Love loveBooks={loveBooks}/>} />
+          <Route path='horror' element={<Horror horrorBooks={horrorBooks} />} />
+        </Route>
+        <Route path='*' element={
+          <div>
+            <h1>This is * route</h1>
+          </div> 
+        } />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
